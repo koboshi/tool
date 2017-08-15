@@ -49,16 +49,6 @@ class Database
     private $affectedRows = 0;
 
     /**
-     * @var int
-     */
-    private $lastErrNo = 0;
-
-    /**
-     * @var string
-     */
-    private $lastErrMsg = '';
-
-    /**
      * @var \PDO
      */
     private $pdoHandle;
@@ -109,6 +99,10 @@ class Database
         $this->dbName = $dbName;
     }
 
+    public function lastSql() {
+        return $this->lastSql;
+    }
+
     public function queryOne($sql, $params = array())
     {
         $statement = $this->_query($sql, $params);
@@ -128,42 +122,141 @@ class Database
         $this->connect();
         $statement = $this->pdoHandle->prepare($sql);
         foreach ($params as $k => $v) {
-            $statement->bindParam($k, $v);
+            $this->bindParam($k, $v, $statement);
         }
-        $statement->execute();
+        $flag = $statement->execute();
+        if ($flag === false) {
+            $this->handleError($statement);
+        }
         $this->affectedRows = $statement->rowCount();
+        $this->lastSql = $statement->queryString;
         return $statement;
     }
 
-    public function insert()
+    private function _insert(array $data, $tbl, $db, $type)
     {
-
+        $type = strtoupper($type);
+        $output = array();
+        foreach ($data as $k => $v) {
+            $output[] = "`{$k}` = :{$k}";
+        }
+        if (empty($db)) {
+            $tblStr = "`{$tbl}`";
+        }else {
+            $tblStr = "`{$db}`.`{$tbl}";
+        }
+        $setStr = implode(', ', $output);
+        $sql = "{$type} INTO {$tblStr} SET {$setStr};";
+        return $sql;
     }
 
-    public function replace()
+    public function delete($whereStr, $tbl, $db = null)
     {
-
+        $this->connect();
+        if (empty($db)) {
+            $tblStr = "`{$tbl}`";
+        }else {
+            $tblStr = "`{$db}`.`{$tbl}";
+        }
+        $sql = "DELETE FROM {$tblStr} WHERE {$whereStr}";
+        $statement = $this->pdoHandle->prepare($sql);
+        $flag = $statement->execute();
+        if ($flag === false) {
+            $this->handleError($statement);
+        }
+        $this->affectedRows = $statement->rowCount();
+        $this->lastSql = $statement->queryString;
+        return $this->affectedRows();
     }
 
-    public function ignore()
+    public function update(array $data, $whereStr, $tbl, $db = null)
     {
-
+        $this->connect();
+        $output = array();
+        foreach ($data as $k => $v) {
+            $output[] = "`{$k}` = :{$k}";
+        }
+        if (empty($db)) {
+            $tblStr = "`{$tbl}`";
+        }else {
+            $tblStr = "`{$db}`.`{$tbl}";
+        }
+        $setStr = implode(', ', $output);
+        $sql = "UPDATE {$tblStr} SET {$setStr} WHERE {$whereStr};";
+        $statement = $this->pdoHandle->prepare($sql);
+        foreach ($data as $k => $v) {
+            $this->bindParam(':' . $k, $v, $statement);
+        }
+        $flag = $statement->execute();
+        if ($flag === false) {
+            $this->handleError($statement);
+        }
+        $this->affectedRows = $statement->rowCount();
+        $this->lastSql = $statement->queryString;
+        return $this->affectedRows();
     }
 
-    public function update()
+    public function insert(array $data, $tbl, $db = null)
     {
-
+        $this->connect();
+        $sql = $this->_insert($data, $tbl, $db, 'INSERT');
+        $statement = $this->pdoHandle->prepare($sql);
+        foreach ($data as $k => $v) {
+            $this->bindParam(':' . $k, $v, $statement);
+        }
+        $flag = $statement->execute();
+        if ($flag === false) {
+            $this->handleError($statement);
+        }
+        $this->affectedRows = $statement->rowCount();
+        $this->lastSql = $statement->queryString;
+        return $this->lastInsertId();
     }
 
-    public function delete()
+    public function replace(array $data, $tbl, $db = null)
     {
+        $this->connect();
+        $sql = $this->_insert($data, $tbl, $db, 'REPLACE');
+        $statement = $this->pdoHandle->prepare($sql);
+        foreach ($data as $k => $v) {
+            $this->bindParam(':' . $k, $v, $statement);
+        }
+        $flag = $statement->execute();
+        if ($flag === false) {
+            $this->handleError($statement);
+        }
+        $this->affectedRows = $statement->rowCount();
+        $this->lastSql = $statement->queryString;
+        return $this->lastInsertId();
+    }
 
+    public function ignore(array $data, $tbl, $db = null)
+    {
+        $this->connect();
+        $sql = $this->_insert($data, $tbl, $db, 'INSERT IGNORE');
+        $statement = $this->pdoHandle->prepare($sql);
+        foreach ($data as $k => $v) {
+            $this->bindParam(':' . $k, $v, $statement);
+        }
+        $flag = $statement->execute();
+        if ($flag === false) {
+            $this->handleError($statement);
+        }
+        $this->affectedRows = $statement->rowCount();
+        $this->lastSql = $statement->queryString;
+        return $this->lastInsertId();
     }
 
     public function exec($sql)
     {
         $this->connect();
-        return $this->pdoHandle->exec($sql);
+        $flag = $this->pdoHandle->exec($sql);
+        if ($flag === false) {
+            $this->handleError($this->pdoHandle);
+        }
+        $this->affectedRows = $flag;
+        $this->lastSql = $sql;
+        return $this->affectedRows();
     }
 
     public function affectedRows()
@@ -199,9 +292,36 @@ class Database
         $this->pdoHandle->rollBack();
     }
 
-    public function excape($str)
+    public function escape($str)
     {
         $this->connect();
         return $this->pdoHandle->quote($str);
+    }
+
+    /**
+     * @param \PDO|\PDOStatement $obj
+     */
+    private function handleError($obj)
+    {
+        $tmp = $obj->errorInfo();
+        $errCode = intval($tmp[1]);
+        $errMsg = strval($tmp[2]);
+        throw new \PDOException($errMsg, $errCode);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @param \PDOStatement $statement
+     */
+    private function bindParam($key, $value, $statement)
+    {
+        if (is_numeric($value)) {
+            $statement->bindParam($key, $value, \PDO::PARAM_INT);
+        }elseif (is_null($value)) {
+            $statement->bindParam($key, $value, \PDO::PARAM_NULL);
+        }else {
+            $statement->bindParam($key, $value, \PDO::PARAM_STR);
+        }
     }
 }
