@@ -83,10 +83,12 @@ class Database
         if (is_null($this->pdoHandle) || $force)
         {
             $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->dbName};charset={$this->charset}";
-            $this->pdoHandle = new \PDO($dsn, $this->user, $this->password, array(
+            $handle = new \PDO($dsn, $this->user, $this->password, array(
                 \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
                 \PDO::MYSQL_ATTR_COMPRESS => false
             ));
+            $handle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $this->pdoHandle = $handle;
         }
     }
 
@@ -273,7 +275,7 @@ class Database
     public function begin()
     {
         $this->connect();
-        if (!$this->pdoHandle->inTransaction())
+        if ($this->pdoHandle->inTransaction())
         {
             throw new \PDOException('in transaction already!');
         }else {
