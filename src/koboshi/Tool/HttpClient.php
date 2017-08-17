@@ -30,14 +30,16 @@ class HttpClient
 
     }
 
-    public function __construct()
+    public function __construct($url = null)
     {
-
+        if (!empty($url)) {
+            $this->config['url'] = trim($url);
+        }
     }
 
-    public function url()
+    public function url($url)
     {
-
+        $this->config['url'] = trim($url);
     }
 
     public function auth()
@@ -61,6 +63,16 @@ class HttpClient
     }
 
     public function cookie()
+    {
+
+    }
+
+    public function timeout()
+    {
+
+    }
+
+    public function connectionTimeout()
     {
 
     }
