@@ -22,15 +22,21 @@ class HttpClient
 
     private $config = array();
 
-    public $errno;
+    public $lastErrno;
 
-    public $httpCode;
+    public $lastHttpCode;
 
     public function __construct($url = null)
     {
-        $this->url($url);
+        if (!empty($url)) {
+            $this->url($url);
+        }
     }
 
+    /**
+     * @param $url
+     * @return $this
+     */
     public function url($url)
     {
         $this->config['url'] = trim($url);
@@ -40,8 +46,14 @@ class HttpClient
     private function processUrl($ch)
     {
         curl_setopt($ch, CURLOPT_URL, $this->config['url']);
+        return $ch;
     }
 
+    /**
+     * @param $username
+     * @param $password
+     * @return $this
+     */
     public function auth($username, $password)
     {
         $tmp = array();
@@ -59,12 +71,20 @@ class HttpClient
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
     }
 
+    /**
+     * @param $ua
+     * @return $this
+     */
     public function ua($ua)
     {
         $this->config['headers']['User-Agent'] = $ua;
         return $this;
     }
 
+    /**
+     * @param array $headers
+     * @return $this
+     */
     public function headers(array $headers)
     {
         $this->config['headers'] = $headers;
@@ -80,6 +100,13 @@ class HttpClient
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     }
 
+    /**
+     * @param $host
+     * @param $port
+     * @param null $username
+     * @param null $password
+     * @return $this
+     */
     public function proxy($host, $port, $username = null, $password = null)
     {
         $tmp = array();
@@ -104,6 +131,10 @@ class HttpClient
         }
     }
 
+    /**
+     * @param array $cookies
+     * @return $this
+     */
     public function cookies(array $cookies)
     {
         $this->config['cookies'] = $cookies;
@@ -119,6 +150,11 @@ class HttpClient
         curl_setopt($ch, CURLOPT_COOKIE, implode(';', $tmp));
     }
 
+    /**
+     * @param $ms
+     * @param null $connectionMs
+     * @return $this
+     */
     public function timeout($ms, $connectionMs = null)
     {
         $tmp = array();
@@ -137,6 +173,10 @@ class HttpClient
         }
     }
 
+    /**
+     * @param $postData
+     * @return $this
+     */
     public function post($postData)
     {
         $tmp = null;
@@ -155,6 +195,10 @@ class HttpClient
         curl_setopt($ch, CURLOPT_POSTFIELDS, $this->config['post_data']);
     }
 
+    /**
+     * @param $eth
+     * @return $this
+     */
     public function eth($eth)
     {
         $this->config['eth'] = $eth;
@@ -166,6 +210,12 @@ class HttpClient
         curl_setopt($ch, CURLOPT_INTERFACE, $this->config['eth']);
     }
 
+    /**
+     * @param null $url
+     * @param null $timeout
+     * @return mixed
+     * @throws \Exception
+     */
     public function request($url = null, $timeout = null)
     {
         if (!empty($url)) {
@@ -174,20 +224,22 @@ class HttpClient
         if (!empty($timeout)) {
             $this->timeout($timeout);
         }
+        if (empty($this->config)) {
+            throw new \Exception('empty config');
+        }
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);//https请求不验证证书
         foreach ($this->config as $k => $v) {
             if (empty($v)) {
-                throw new \Exception('empty config ' . $v);
+                throw new \Exception('empty config: ' . $v);
             }
             $methodName = 'process'  . ucwords($k);
-            $refObj = new \ReflectionObject($this);
-            $method = $refObj->getMethod($methodName);
-            $method->invokeArgs($this, array($ch));
+            $this->$methodName($ch);
         }
         $content = curl_exec($ch);
-        $this->errno= curl_errno($ch);
-        $this->httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $this->lastErrno = curl_errno($ch);
+        $this->lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         $this->reset();
         return $content;
@@ -196,7 +248,5 @@ class HttpClient
     private function reset()
     {
         $this->config = array();
-        $this->errno = null;
-        $this->httpCode = null;
     }
 }
