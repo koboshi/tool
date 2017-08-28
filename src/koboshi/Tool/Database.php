@@ -75,13 +75,11 @@ class Database
     public function __destruct()
     {
         $this->pdoHandle = null;
-        $this->pdoStmt = null;
     }
 
     private function connect($force = false)
     {
-        if (is_null($this->pdoHandle) || $force)
-        {
+        if (is_null($this->pdoHandle) || $force) {
             $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->dbName};charset={$this->charset}";
             $handle = new \PDO($dsn, $this->user, $this->password, array(
                 \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
@@ -101,7 +99,8 @@ class Database
         $this->dbName = $dbName;
     }
 
-    public function lastSql() {
+    public function lastSql()
+    {
         return $this->lastSql;
     }
 
@@ -144,7 +143,7 @@ class Database
         }
         if (empty($db)) {
             $tblStr = "`{$tbl}`";
-        }else {
+        } else {
             $tblStr = "`{$db}`.`{$tbl}";
         }
         $setStr = implode(', ', $output);
@@ -157,7 +156,7 @@ class Database
         $this->connect();
         if (empty($db)) {
             $tblStr = "`{$tbl}`";
-        }else {
+        } else {
             $tblStr = "`{$db}`.`{$tbl}";
         }
         $sql = "DELETE FROM {$tblStr} WHERE {$whereStr}";
@@ -180,7 +179,7 @@ class Database
         }
         if (empty($db)) {
             $tblStr = "`{$tbl}`";
-        }else {
+        } else {
             $tblStr = "`{$db}`.`{$tbl}";
         }
         $setStr = implode(', ', $output);
@@ -275,10 +274,9 @@ class Database
     public function begin()
     {
         $this->connect();
-        if ($this->pdoHandle->inTransaction())
-        {
+        if ($this->pdoHandle->inTransaction()) {
             throw new \PDOException('in transaction already!');
-        }else {
+        } else {
             $this->pdoHandle->beginTransaction();
         }
     }
@@ -289,7 +287,8 @@ class Database
         $this->pdoHandle->commit();
     }
 
-    public function rollback() {
+    public function rollback()
+    {
         $this->connect();
         $this->pdoHandle->rollBack();
     }
@@ -320,9 +319,9 @@ class Database
     {
         if (is_numeric($value)) {
             $statement->bindParam($key, $value, \PDO::PARAM_INT);
-        }elseif (is_null($value)) {
+        } elseif (is_null($value)) {
             $statement->bindParam($key, $value, \PDO::PARAM_NULL);
-        }else {
+        } else {
             $statement->bindParam($key, $value, \PDO::PARAM_STR);
         }
     }
