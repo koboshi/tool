@@ -67,7 +67,8 @@ class Language
      */
     public static function zh2py($str, $firstLetter = true)
     {
-//        $sGBK = iconv('UTF-8', 'GBK//TRANSLIT', $utf8Data);
+        $str = self::traditional2simplified($str);
+//        $sGBK = iconv('UTF-8', 'GBK//TRANSLIT', $str);
         $sGBK = mb_convert_encoding($str, 'GBK', 'UTF-8');
         $aBuf = array();
         for ($i = 0, $iLoop = strlen($sGBK); $i < $iLoop; $i++) {

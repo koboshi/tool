@@ -1,6 +1,6 @@
 <?php
 /**
- * 文本工具
+ * 文本处理相关
  * @author SamDing
  */
 namespace koboshi\Tool;
