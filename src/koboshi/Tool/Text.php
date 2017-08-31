@@ -156,19 +156,51 @@ class Text
 
     /**
      * 增加bom头
+     * @param string $filename
+     * @param string $charset
+     * @return bool
      */
     public static function addBOM($filename, $charset = 'utf-8')
     {
-
+        $charset = strtolower($charset);
+        if ($charset != 'utf-8') {
+            return false;
+        }
+        if(!file_exists($filename)) {
+            return false;
+        }
+        $tmpFilename = $filename . '.tmp.' . md5(time());
+        $rFp = fopen($filename, 'rb');
+        if (!$rFp) {
+            return false;
+        }
+        $wFp = fopen($tmpFilename, 'wb');
+        fputs($wFp, "\xEF\xBB\xBF");//输出utf-8 BOM信息
+        while ($chunk = fgets($rFp, 1024)) {
+            fputs($wFp, $chunk);
+        }
+        fclose($rFp);
+        fclose($wFp);
+        unlink($filename);
+        rename($tmpFilename, $filename);
+        return true;
     }
 
-    public static function readCsvFile()
+    public static function readCsvFile($filename, callable $callback)
     {
-
+        $fp = fopen($filename, 'rb');
+        while ($row = fgetcsv($fp)) {
+            $callback($row, $fp);
+        }
+        fclose($fp);
     }
 
-    public static function readFile()
+    public static function readFile($filename, callable $callback)
     {
-
+        $fp = fopen($filename, 'rb');
+        while ($row = fgets($fp)) {
+            $callback($row, $fp);
+        }
+        fclose($fp);
     }
 }
