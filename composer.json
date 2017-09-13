@@ -2,7 +2,7 @@
   "name": "koboshi/tool",
   "description": "a useful common tool library",
   "keywords": ["PHP","koboshi","Tool"],
-  "homepage": "https://github.com/koboshi/Tool",
+  "homepage": "https://github.com/koboshi/tool",
   "type": "library",
   "license": "LGPL-2.1",
   "authors": [
