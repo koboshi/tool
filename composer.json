@@ -1,6 +1,6 @@
 {
   "name": "koboshi/tool",
-  "description": "a useful common tool library",
+  "description": "a useful common tool library - include mysql, http client, language, text",
   "keywords": ["PHP","koboshi","Tool"],
   "homepage": "https://github.com/koboshi/tool",
   "type": "library",
