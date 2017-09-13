@@ -1,9 +1,9 @@
 <?php
 namespace koboshi\test;
 
-require __DIR__ . "/../src/koboshi/Tool/HttpClient.php";
+require __DIR__ . "/../src/koboshi/tool/HttpClient.php";
 
-use koboshi\Tool\HttpClient;
+use koboshi\tool\HttpClient;
 
 $httpClient = new HttpClient();
 $content = $httpClient->request('https://www.jd.com/');

@@ -3,7 +3,7 @@
  * 常用语言相关工具
  * @author SamDing
  */
-namespace koboshi\Tool;
+namespace koboshi\tool;
 
 class Language
 {

@@ -1,9 +1,9 @@
 <?php
 namespace koboshi\test;
 
-require __DIR__ . "/../src/koboshi/Tool/Database.php";
+require __DIR__ . "/../src/koboshi/tool/Database.php";
 
-use koboshi\Tool\Database;
+use koboshi\tool\Database;
 
 $db = new Database('127.0.0.1', 'root', '', 3306, 'plus');
 $db->selectDatabase('forge');

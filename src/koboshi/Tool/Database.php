@@ -4,7 +4,7 @@
  * 基于PDO
  * @author SamDing
  */
-namespace koboshi\Tool;
+namespace koboshi\tool;
 
 class Database
 {

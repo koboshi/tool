@@ -4,7 +4,7 @@
  * 基于CURL
  * @author SamDing
  */
-namespace koboshi\Tool;
+namespace koboshi\tool;
 
 class HttpClient
 {

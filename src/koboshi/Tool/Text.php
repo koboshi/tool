@@ -3,7 +3,7 @@
  * 文本处理相关
  * @author SamDing
  */
-namespace koboshi\Tool;
+namespace koboshi\tool;
 
 class Text
 {

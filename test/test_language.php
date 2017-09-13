@@ -1,9 +1,9 @@
 <?php
 namespace koboshi\test;
 
-require __DIR__ . "/../src/koboshi/Tool/Language.php";
+require __DIR__ . "/../src/koboshi/tool/Language.php";
 
-use koboshi\Tool\Language;
+use koboshi\tool\Language;
 
 $flag = Language::isChinese('低洼udhaowd');
 var_dump($flag);
