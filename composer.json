@@ -1,0 +1,24 @@
+{
+  "name": "koboshi/Tool",
+  "description": "a useful common tool library",
+  "keywords": ["PHP","koboshi","Tool"],
+  "homepage": "https://github.com/koboshi/Tool",
+  "type": "library",
+  "license": "LGPL-2.1",
+  "authors": [
+    {
+      "name": "Sam Ding"
+    }
+  ],
+  "require": {
+    "php": ">=5.3",
+    "ext-mbstring": "*",
+    "ext-curl": "*",
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "psr-0": {
+      "koboshi\\Tool": "src/"
+    }
+  }
+}
